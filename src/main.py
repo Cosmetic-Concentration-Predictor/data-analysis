@@ -1,8 +1,7 @@
+from neural_network_wrapper import NeuralNetworkWrapper
 from random_forest_regressor_wrapper import RandomForestRegressorWrapper
 from svr_wrapper import SVRWrapper
-from neural_network_wrapper import NeuralNetworkWrapper
 
-# FILE_PATH = "../extract_dataset/materials.csv"
 FILE_PATH = "../dataset-extractor/output_files/materials.csv"
 
 

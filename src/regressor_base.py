@@ -1,6 +1,11 @@
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
+import seaborn as sns
+from scipy import stats
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.preprocessing import OneHotEncoder
 
 
 class RegressorBase:
@@ -37,10 +42,6 @@ class RegressorBase:
             self.X, self.y, test_size=0.2, random_state=42
         )
 
-        scaler = StandardScaler()
-        self.X_train_scaled = scaler.fit_transform(self.X_train)
-        self.X_test = scaler.transform(self.X_test)
-
     def train_model(self):
         pass
 
@@ -48,7 +49,43 @@ class RegressorBase:
         pass
 
     def evaluate(self):
-        pass
+        try:
+            mse = mean_squared_error(self.y_test, self.y_pred)
+            rmse = np.sqrt(mse)
+            mae = mean_absolute_error(self.y_test, self.y_pred)
+            r2 = r2_score(self.y_test, self.y_pred)
+
+            self.mse = mse
+            self.rmse = rmse
+            self.mae = mae
+            self.r2 = r2
+        except ValueError:
+            print(f"{self.y_test} - {self.y_pred}")
+
+    def print_results(self):
+        print("Random Forest Regressor Results:")
+        print("MSE:", self.mse)
+        print("RMSE:", self.rmse)
+        print("MAE:", self.mae)
+        print("R²:", self.r2)
+
+    def plot_graphs(self):
+        residuos = self.y_test - self.y_pred.reshape(-1)
+        plt.scatter(self.y_pred, residuos)
+        plt.xlabel("Previsões")
+        plt.ylabel("Resíduos")
+        plt.title("Gráfico de Dispersão de Resíduos vs. Previsões")
+        plt.show()
+
+        sns.histplot(residuos, bins=30, kde=True)
+        plt.xlabel("Resíduos")
+        plt.ylabel("Frequência")
+        plt.title("Histograma dos Resíduos")
+        plt.show()
+
+        stats.probplot(residuos, dist="norm", plot=plt)
+        plt.title("Gráfico QQ dos Resíduos")
+        plt.show()
 
     def run(self):
         self.preprocess_data()
@@ -56,6 +93,4 @@ class RegressorBase:
         self.predict()
         self.evaluate()
         self.print_results()
-
-    def print_results(self):
-        pass
+        self.plot_graphs()

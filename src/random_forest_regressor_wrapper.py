@@ -1,6 +1,4 @@
-import numpy as np
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
@@ -27,21 +25,3 @@ class RandomForestRegressorWrapper(RegressorBase):
     def predict(self):
         y_pred = self.model.predict(self.X_test)
         self.y_pred = y_pred
-
-    def evaluate(self):
-        mse = mean_squared_error(self.y_test, self.y_pred)
-        rmse = np.sqrt(mse)
-        mae = mean_absolute_error(self.y_test, self.y_pred)
-        r2 = r2_score(self.y_test, self.y_pred)
-
-        self.mse = mse
-        self.rmse = rmse
-        self.mae = mae
-        self.r2 = r2
-
-    def print_results(self):
-        print("Random Forest Regressor Results:")
-        print("MSE:", self.mse)
-        print("RMSE:", self.rmse)
-        print("MAE:", self.mae)
-        print("R²:", self.r2)
