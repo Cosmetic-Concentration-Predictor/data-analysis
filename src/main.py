@@ -1,6 +1,9 @@
-from neural_network_wrapper import NeuralNetworkWrapper
+from gradient_boosting_regressor_wrapper import GradientBoostingRegressorWrapper
+from k_nearest_neighbors import KNNRegressorWrapper
+from multi_layer_perceptron_wrapper import MultiLayerPerceptronWrapper
 from random_forest_regressor_wrapper import RandomForestRegressorWrapper
-from svr_wrapper import SVRWrapper
+
+# from svr_wrapper import SVRWrapper
 
 FILE_PATH = "../dataset-extractor/output_files/materials.csv"
 
@@ -12,14 +15,24 @@ def main():
     rf_model.run()
 
     print()
-    print("*** Starting the Neural Network algorithm ***")
-    svm_model = NeuralNetworkWrapper(FILE_PATH)
-    svm_model.run()
+    print("*** Starting the Gradient Boosting Regressor algorithm ***")
+    gb_model = GradientBoostingRegressorWrapper(FILE_PATH)
+    gb_model.run()
 
     print()
-    print("*** Starting the SVR algorithm ***")
-    svm_model = SVRWrapper(FILE_PATH)
-    svm_model.run()
+    print("*** Starting the k-Nearest Neighbors algorithm ***")
+    knn_model = KNNRegressorWrapper(FILE_PATH)
+    knn_model.run()
+
+    print()
+    print("*** Starting the Multi-Layer Perceptron algorithm ***")
+    mlp_model = MultiLayerPerceptronWrapper(FILE_PATH)
+    mlp_model.run()
+
+    # print()
+    # print("*** Starting the SVR algorithm ***")
+    # svr_model = SVRWrapper(FILE_PATH, 50000)
+    # svr_model.run()
 
 
 if __name__ == "__main__":
