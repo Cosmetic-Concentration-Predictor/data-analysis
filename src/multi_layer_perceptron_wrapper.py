@@ -8,7 +8,11 @@ from regressor_base import RegressorBase
 
 class MultiLayerPerceptronWrapper(RegressorBase):
     def __init__(self, file_path):
-        super().__init__(file_path, output_filename="./output_files/mlp_model.pkl")
+        super().__init__(
+            file_path,
+            output_model="./output_files/mlp_model.joblib",
+            output_encoder="./output_files/mlp_encoder.joblib",
+        )
 
     # def preprocess_data(self):
     #     self.encoder = OneHotEncoder(sparse_output=False, handle_unknown="ignore")

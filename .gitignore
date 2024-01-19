@@ -194,5 +194,4 @@ pyrightconfig.json
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,python
 
-output_files/
 output_files/*

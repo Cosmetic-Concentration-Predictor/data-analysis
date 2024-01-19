@@ -5,7 +5,11 @@ from regressor_base import RegressorBase
 
 class RandomForestRegressorWrapper(RegressorBase):
     def __init__(self, file_path):
-        super().__init__(file_path, output_filename="./output_files/rf_model.pkl")
+        super().__init__(
+            file_path,
+            output_model="./output_files/rf_model.joblib",
+            output_encoder="./output_files/rf_encoder.joblib",
+        )
 
     def train_model(self):
         self.model = RandomForestRegressor(n_estimators=100, random_state=42)

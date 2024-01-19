@@ -12,9 +12,10 @@ from sklearn.preprocessing import OneHotEncoder
 
 
 class RegressorBase:
-    def __init__(self, file_path, output_filename=None):
+    def __init__(self, file_path, output_model=None, output_encoder=None):
         self.data = pd.read_csv(file_path)
-        self.output_filename = output_filename
+        self.output_model = output_model
+        self.output_encoder = output_encoder
         self.X = None
         self.y = None
         self.X_train = None
@@ -86,16 +87,26 @@ class RegressorBase:
     def predict(self):
         pass
 
-    def save_model(self):
-        if self.output_filename is None:
+    def save_configuration(self):
+        if self.output_model is None:
             print("Provide a filename to save the model.")
             return
 
+        if self.output_encoder is None:
+            print("Provide a filename to save the encoder.")
+            return
+
         if self.model:
-            joblib.dump(self.model, self.output_filename)
+            joblib.dump(self.model, self.output_model)
             print("Model saved successfully.")
         else:
             print("No model to save. Train the model first.")
+
+        if self.encoder:
+            joblib.dump(self.encoder, self.output_encoder)
+            print("Encoder saved successfully.")
+        else:
+            print("No encoder to save.")
 
     def evaluate(self):
         try:
@@ -146,7 +157,7 @@ class RegressorBase:
         self.preprocess_data()
         self.train_model()
         self.predict()
-        # self.save_model()
+        self.save_configuration()
         self.evaluate()
         self.print_results()
         self.plot_graphs()
