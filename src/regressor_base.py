@@ -6,9 +6,9 @@ import seaborn as sns
 from scipy import stats
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
 
-from sklearn.preprocessing import OneHotEncoder
+# from sklearn.model_selection import KFold
+from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 
 
 class RegressorBase:
@@ -30,16 +30,12 @@ class RegressorBase:
         self.encoder = OneHotEncoder(sparse_output=False, handle_unknown="ignore")
 
         acronym_2d = self.data["acronym"].values.reshape(-1, 1)
-
         encoded_acronym = self.encoder.fit_transform(acronym_2d)
-
         encoded_acronym_df = pd.DataFrame(
             encoded_acronym,
             columns=self.encoder.get_feature_names_out(["acronym"]),
         )
-
         self.data = pd.concat([self.data, encoded_acronym_df], axis=1)
-
         self.data.drop("acronym", axis=1, inplace=True)
 
         self.X = self.data.drop("concentration", axis=1)
@@ -49,21 +45,20 @@ class RegressorBase:
             self.X, self.y, test_size=0.2, random_state=42
         )
 
-    def preprocess_data_to_predict(self, acronyms, codes):
-        data = pd.DataFrame({"acronym": acronyms, "code": codes})
+    # def preprocess_data_to_predict(self, acronyms, codes):
+    #     data = pd.DataFrame({"acronym": acronyms, "code": codes})
 
-        acronym_2d = data["acronym"].values.reshape(-1, 1)
+    #     acronym_2d = data["acronym"].values.reshape(-1, 1)
 
-        encoded_acronym = self.encoder.transform(acronym_2d)
-        encoded_acronym_df = pd.DataFrame(
-            encoded_acronym,
-            columns=self.encoder.get_feature_names_out(["acronym"]),
-        )
+    #     encoded_acronym = self.encoder.transform(acronym_2d)
+    #     encoded_acronym_df = pd.DataFrame(
+    #         encoded_acronym,
+    #         columns=self.encoder.get_feature_names_out(["acronym"]),
+    #     )
 
-        data = pd.concat([data, encoded_acronym_df], axis=1)
-
-        data.drop("acronym", axis=1, inplace=True)
-        return data
+    #     data = pd.concat([data, encoded_acronym_df], axis=1)
+    #     data.drop("acronym", axis=1, inplace=True)
+    #     return data
 
     # def preprocess_data(self):
     #     self.X = self.data.drop("concentration", axis=1)
@@ -71,10 +66,6 @@ class RegressorBase:
 
     #     self.encoder = LabelEncoder()
     #     self.X["acronym"] = self.encoder.fit_transform(self.X["acronym"])
-
-    #     self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
-    #         self.X, self.y, test_size=0.2, random_state=42
-    #     )
 
     # def preprocess_data_to_predict(self, acronyms, codes):
     #     data = pd.DataFrame({"acronym": acronyms, "code": codes})
@@ -109,18 +100,50 @@ class RegressorBase:
             print("No encoder to save.")
 
     def evaluate(self):
-        try:
-            mse = mean_squared_error(self.y_test, self.y_pred)
-            rmse = np.sqrt(mse)
-            mae = mean_absolute_error(self.y_test, self.y_pred)
-            r2 = r2_score(self.y_test, self.y_pred)
+        y_pred = self.model.predict(self.X_test)
+        mse = mean_squared_error(self.y_test, y_pred)
+        rmse = np.sqrt(mse)
+        mae = mean_absolute_error(self.y_test, y_pred)
+        r2 = r2_score(self.y_test, y_pred)
+        return mse, rmse, mae, r2
 
-            self.mse = mse
-            self.rmse = rmse
-            self.mae = mae
-            self.r2 = r2
-        except ValueError:
-            print(f"{self.y_test} - {self.y_pred}")
+    def k_fold_cross_validation(self, num_folds=5):
+        print("Starting k fold cross validation")
+        kf = KFold(n_splits=num_folds, shuffle=True, random_state=42)
+        metrics = {"mse": [], "rmse": [], "mae": [], "r2": []}
+
+        for train_index, test_index in kf.split(self.X):
+            self.X_train, self.X_test = (
+                self.X.iloc[train_index],
+                self.X.iloc[test_index],
+            )
+            self.y_train, self.y_test = (
+                self.y.iloc[train_index],
+                self.y.iloc[test_index],
+            )
+            self.train_model()
+            mse, rmse, mae, r2 = self.evaluate()
+            metrics["mse"].append(mse)
+            metrics["rmse"].append(rmse)
+            metrics["mae"].append(mae)
+            metrics["r2"].append(r2)
+        return metrics
+
+    def calculate_metrics(self, metrics):
+        self.mse_mean = np.mean(metrics["mse"])
+        self.mse_std = np.std(metrics["mse"])
+        self.rmse_mean = np.mean(metrics["rmse"])
+        self.rmse_std = np.std(metrics["rmse"])
+        self.mae_mean = np.mean(metrics["mae"])
+        self.mae_std = np.std(metrics["mae"])
+        self.r2_mean = np.mean(metrics["r2"])
+        self.r2_std = np.std(metrics["r2"])
+
+    def print_metrics(self):
+        print(f"MSE Mean: {self.mse_mean}, MSE Std: {self.mse_std}")
+        print(f"RMSE Mean: {self.rmse_mean}, RMSE Std: {self.rmse_std}")
+        print(f"MAE Mean: {self.mae_mean}, MAE Std: {self.mae_std}")
+        print(f"R2 Mean: {self.r2_mean}, R2 Std: {self.r2_std}")
 
     def print_results(self):
         print("Résultats:")
@@ -150,14 +173,15 @@ class RegressorBase:
     def predict_multiple(self, acronyms, codes):
         input_data = self.preprocess_data_to_predict(acronyms, codes)
         self.predictions = self.model.predict(input_data)
-
         print(f"Predictions: {self.predictions}")
 
     def run(self):
         self.preprocess_data()
+        # metrics = self.k_fold_cross_validation()
+        # self.calculate_metrics(metrics)
         self.train_model()
         self.predict()
-        self.save_configuration()
-        self.evaluate()
-        self.print_results()
+        # self.print_metrics()
+        # self.evaluate()
+        # self.print_results()
         self.plot_graphs()
